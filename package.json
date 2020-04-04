@@ -25,7 +25,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "screenshot": "node capture.js"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -44,6 +45,7 @@
   },
   "devDependencies": {
     "@types/react-router-dom": "^5.1.3",
-    "@types/styled-components": "^5.0.1"
+    "@types/styled-components": "^5.0.1",
+    "puppeteer": "^2.1.1"
   }
 }

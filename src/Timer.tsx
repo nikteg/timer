@@ -79,6 +79,7 @@ export function Timer() {
               label="Request permission"
             />
             <Button
+              id="skip"
               onClick={() => setShowLayer(false)}
               label="Skip"
               margin="small"
