@@ -1,72 +1,119 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { Box, Button, Clock } from "grommet";
-import { PlayFill, PauseFill } from "grommet-icons";
-import { useParams, useHistory } from "react-router-dom";
-import { formatTime, calculateTime } from "./utils";
-import { useQuery } from "./useQuery";
 import useInterval from "@use-it/interval";
+import { Box, Button, Clock, Layer, Meter, Stack } from "grommet";
+import React, { useCallback, useEffect, useState } from "react";
+import styled, { css, keyframes } from "styled-components";
+import { NumberParam, useQueryParam } from "use-query-params";
+import { LinkButton } from "./LinkButton";
+import { useNotification } from "./useNotification";
+import { formatTime } from "./utils";
+
+const blink = keyframes`
+  50% {
+    opacity: 0;
+  }
+`;
+
+const StyledClock = styled(Clock)<{ paused: boolean }>`
+  animation: ${({ paused }) => paused && css`1s ${blink} ease-in-out infinite`};
+`;
 
 export function Timer() {
-  const params = useParams<{ duration: string }>();
+  const [isRunning, setIsRunning] = useState(true);
+  const [remaining, setRemaining] = useQueryParam("remaining", NumberParam);
+  const [duration, setDuration] = useQueryParam("duration", NumberParam);
 
-  const history = useHistory();
+  const {
+    showNotification,
+    requestPermission,
+    hasPermission,
+  } = useNotification();
 
-  const duration = Number(params.duration);
-
-  const [isRunning, setIsRunning] = useQuery("running", "");
-  const [startedAt, setStartedAt] = useQuery("startedAt", "");
-
-  const [time, setTime] = useState(
-    formatTime(
-      calculateTime(
-        duration,
-        Math.round(Date.now() / 1000),
-        Math.round(Date.now() / 1000)
-      )
-    )
-  );
+  const [showLayer, setShowLayer] = useState(!hasPermission);
 
   useEffect(() => {
-    if (isRunning === "true") {
-      setStartedAt(String(Math.round(Date.now() / 1000)));
+    if (hasPermission) {
+      setShowLayer(false);
     }
-  }, [isRunning, setStartedAt]);
+  }, [hasPermission]);
+
+  useEffect(() => {
+    if (!duration) {
+      setDuration(remaining);
+    }
+  }, [duration, remaining, setDuration]);
 
   const tick = useCallback(() => {
-    console.log("tick");
-    setTime(
-      formatTime(
-        calculateTime(
-          duration,
-          Math.round(Date.now() / 1000),
-          Number(startedAt)
-        )
-      )
-    );
-  }, [duration, startedAt]);
+    if (remaining! > 0) {
+      setRemaining(remaining! - 1);
+      showNotification("Timer", {
+        tag: "timer",
+        body: formatTime(remaining!, "Time remaining: "),
+        silent: true,
+        data: { url: window.location.href }
+      });
+    } else if (remaining === 0) {
+      setIsRunning(false);
+      showNotification("Timer", {
+        tag: "timer",
+        body: "Time out!",
+        silent: false,
+        renotify: true,
+        data: { url: window.location.href }
+      });
+    }
+  }, [remaining, setRemaining, showNotification]);
 
-  useInterval(tick, isRunning === "true" ? 1000 : null);
+  useInterval(tick, isRunning ? 1000 : null);
 
   const onButtonClick = () => {
-    if (isRunning === "true") {
-      history.replace(
-        `${duration - Math.round(Date.now() / 1000 - Number(startedAt))}`
-      );
-
-      return;
-    }
-
-    setIsRunning("true");
+    setIsRunning((isRunning) => !isRunning);
   };
 
   return (
-    <Box align="center" justify="center" fill>
+    <>
+      {showLayer && (
+        <Layer margin="medium">
+          <Box justify="center" align="center" fill>
+            <Button
+              primary
+              onClick={requestPermission}
+              label="Request permission"
+            />
+            <Button
+              onClick={() => setShowLayer(false)}
+              label="Skip"
+              margin="small"
+            />
+          </Box>
+        </Layer>
+      )}
+      <Stack anchor="center" margin="medium">
+        <Meter
+          max={duration ?? 0}
+          type="circle"
+          round
+          values={[
+            {
+              value: remaining ?? 0,
+            },
+          ]}
+          aria-label="meter"
+        />
+        <StyledClock
+          paused={!isRunning}
+          type="digital"
+          time={formatTime(remaining!)}
+          run="backward"
+          size="xxlarge"
+        />
+      </Stack>
       <Button
-        icon={isRunning ? <PauseFill /> : <PlayFill />}
         onClick={onButtonClick}
+        label={isRunning ? "Pause" : "Start"}
         primary
+        margin="small"
       />
-      <Clock type="digital" time={time} run="backward" size="large" />
-    </Box>
+      <LinkButton label={"Setup"} to="/" />
+    </>
   );
 }

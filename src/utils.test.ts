@@ -1,4 +1,4 @@
-import { formatTime, calculateTime } from "./utils";
+import { formatTime, calculateTime, now } from "./utils";
 
 describe("formatTime", () => {
   it("formats time correctly", () => {
@@ -22,5 +22,11 @@ describe("calculateTime", () => {
     const start = 1585753006;
     const now = start + 10;
     expect(calculateTime(duration, now, start)).toBe(duration - 10);
+  });
+});
+
+describe("now", () => {
+  it("gets the correct time", () => {
+    expect(now(1585990060648)).toBe(1585990060);
   });
 });
