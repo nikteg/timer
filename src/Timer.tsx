@@ -71,12 +71,12 @@ export function Timer() {
   return (
     <>
       {showLayer && (
-        <Layer margin="medium">
+        <Layer margin="medium" full animate={false}>
           <Box justify="center" align="center" fill>
             <Button
               primary
               onClick={requestPermission}
-              label="Request permission"
+              label="Enable notifications"
             />
             <Button
               id="skip"
