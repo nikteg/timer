@@ -1,26 +1,26 @@
 import { useCallback, useState } from "react";
 
 export const useNotification = () => {
-  const [hasPermission, setHasPermission] = useState(
-    Notification.permission === "granted"
+  const [permission, setPermission] = useState<NotificationPermission>(
+    Notification.permission
   );
 
   const requestPermission = useCallback(() => {
     Notification.requestPermission().then(function (result) {
-      setHasPermission(result === "granted");
+      setPermission(result);
     });
-  }, [setHasPermission]);
+  }, [setPermission]);
 
   const showNotification = useCallback(
     (title: string, options: NotificationOptions) => {
-      if (hasPermission) {
+      if (permission === "granted") {
         navigator.serviceWorker.ready.then((registration) => {
           registration.showNotification(title, options);
         });
       }
     },
-    [hasPermission]
+    [permission]
   );
 
-  return { showNotification, requestPermission, hasPermission };
+  return { showNotification, requestPermission, permission };
 };
