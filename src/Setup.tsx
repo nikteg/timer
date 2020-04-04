@@ -18,7 +18,7 @@ export function Setup() {
         />
       </Box>
       <LinkButton
-        to={`/timer?remaining=${10}`}
+        to={`/timer?remaining=${duration * 3600}`}
         label={`Start ${duration} hour timer`}
       />
     </>

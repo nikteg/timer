@@ -18,9 +18,9 @@ const StyledClock = styled(Clock)<{ paused: boolean }>`
 `;
 
 export function Timer() {
-  const [isRunning, setIsRunning] = useState(true);
   const [remaining, setRemaining] = useQueryParam("remaining", NumberParam);
   const [duration, setDuration] = useQueryParam("duration", NumberParam);
+  const [isRunning, setIsRunning] = useState(remaining !== 0);
 
   const {
     showNotification,
@@ -49,19 +49,18 @@ export function Timer() {
         tag: "timer",
         body: formatTime(remaining!, "Time remaining: "),
         silent: true,
-        data: { url: window.location.href }
       });
     } else if (remaining === 0) {
       setIsRunning(false);
+      setRemaining(duration!);
       showNotification("Timer", {
         tag: "timer",
         body: "Time out!",
         silent: false,
         renotify: true,
-        data: { url: window.location.href }
       });
     }
-  }, [remaining, setRemaining, showNotification]);
+  }, [duration, remaining, setRemaining, showNotification]);
 
   useInterval(tick, isRunning ? 1000 : null);
 
