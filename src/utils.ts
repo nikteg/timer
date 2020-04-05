@@ -8,11 +8,3 @@ export function formatTime(time: number, prefix = "T") {
     "0"
   )}:${String(seconds).padStart(2, "0")}`;
 }
-
-export function calculateTime(duration: number, now: number, start: number) {
-  return duration - (now - start);
-}
-
-export function now(date = Date.now()) {
-  return Math.floor(date / 1000);
-}
